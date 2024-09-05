@@ -1,29 +1,26 @@
-import multiprocessing
-import time
-from numpy.random import Generator, PCG64
 import numpy as np
+from tqdm import tqdm
+from datetime import datetime
+start = datetime.now()
 
-number_of_runs = 10_000_000
-number_of_reps = 100
+best = 231
 
+rolls = 1_000_000
+length_of_run = 231
 
-number_of_concurrent = multiprocessing.cpu_count()
-args = [0 for _ in range(0, number_of_runs)]
+array = np.random.randint(0, 4, size=(rolls, length_of_run), dtype=np.int8)
 
-rng = Generator(PCG64())
-def count_values(_):
-    return np.count_nonzero(rng.integers(4, size=231) == 0)
+with tqdm(total=rolls) as pbar:
+    for array in array:
+        curr = np.count_nonzero(array)
+        if curr < best:
+            best = curr
+        pbar.update()
+        if best < 54:
+            break
 
+best = 231 - best
 
-if __name__ == '__main__':
-    multiprocessing.freeze_support()
-    Pool = multiprocessing.Pool(processes = number_of_concurrent)
-    res = 0
-    start = time.time()
-    for _ in range(number_of_reps):
-        res = max(res, max(Pool.map(count_values, args)))
-    end = time.time()
-
-    print("Highest Ones Roll:", res)
-    print("Number of Roll Sessions:", number_of_runs)
-    print("Time Taken(seconds):", end - start)
+print(f"Highest Roll: {best}")
+print(f"Number of Roll Sessions: {rolls}")
+print(f"Took {datetime.now() - start} seconds to finish.")
